@@ -1,11 +1,21 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from "react";
 import { HiPrinter } from "react-icons/hi2";
 import API from "../api";
 
 const ALL_MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
-]
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 import {
   Select,
   SelectContent,
@@ -13,15 +23,30 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { format } from 'date-fns/format';
-
+} from "@/components/ui/select";
+import { format } from "date-fns/format";
 
 function formatDisplayDate(dateStr) {
-  if (!dateStr) return ''
-  const [y, m, d] = dateStr.split('-')
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-  return `${parseInt(d, 10)}-${months[parseInt(m, 10) - 1]}-${y}`
+  if (!dateStr) return "";
+
+  const [y, m, d] = dateStr.split("-");
+
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  return `${parseInt(d, 10)} ${months[parseInt(m, 10) - 1]} ${y}`;
 }
 
 function formatTime12h(time) {
@@ -53,49 +78,62 @@ function formatTime12h(time) {
   return time;
 }
 
-
 function EditModal({ entry, currentPrice, onSave, onClose, showToast }) {
-  const [cups, setCups] = useState(entry.cup_count || 1)
-  const [saving, setSaving] = useState(false)
+  const [cups, setCups] = useState(entry.cup_count || 1);
+  const [saving, setSaving] = useState(false);
 
   async function handleSave() {
-    const val = parseInt(cups, 10)
-    if (!val || val <= 0) return
+    const val = parseInt(cups, 10);
+    if (!val || val <= 0) return;
 
-    setSaving(true)
+    setSaving(true);
 
     try {
-      await onSave(entry.id, val)
+      await onSave(entry.id, val);
 
-      showToast(`Updated to ${val} cups`)
+      showToast(`Updated to ${val} cups`);
 
-      onClose()
+      onClose();
     } catch (err) {
-      console.log(err)
-      showToast("Update failed ❌")
+      console.log(err);
+      showToast("Update failed ❌");
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
   }
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-box" onClick={(e) => e.stopPropagation()}>
-        <h2 className="modal-title">Edit Entry</h2>
+        <div className="modal-header">
+          <div>
+            <h2 className="modal-title">Edit Entry</h2>
 
-        <label className="modal-label">Edit Tea Cups</label>
+            <p className="modal-subtitle">
+              Update tea cup quantity for this entry
+            </p>
+          </div>
+        </div>
 
-        <input
-          className="modal-input"
-          type="number"
-          min={1}
-          value={cups}
-          onChange={(e) => setCups(e.target.value)}
-          autoFocus
-        />
+        <div className="modal-body">
+          <label className="modal-label">Tea Cups Count</label>
+
+          <input
+            className="modal-input"
+            type="number"
+            min={1}
+            value={cups}
+            onChange={(e) => setCups(e.target.value)}
+            autoFocus
+          />
+        </div>
 
         <div className="modal-actions">
-          <button className="modal-btn-cancel" onClick={onClose} disabled={saving}>
+          <button
+            className="modal-btn-cancel"
+            onClick={onClose}
+            disabled={saving}
+          >
             Cancel
           </button>
 
@@ -106,49 +144,67 @@ function EditModal({ entry, currentPrice, onSave, onClose, showToast }) {
           >
             {saving ? (
               <span className="btn-loader">
-                <span className="spinner"></span> Saving...
+                <span className="spinner"></span>
+                Saving...
               </span>
             ) : (
-              "Save"
+              "Save Changes"
             )}
           </button>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function DeleteModal({ entry, onConfirm, onClose, showToast }) {
-  const [deleting, setDeleting] = useState(false)
+  const [deleting, setDeleting] = useState(false);
 
   async function handleDelete() {
-    setDeleting(true)
+    setDeleting(true);
 
     try {
-      await onConfirm(entry.id || entry._id)
+      await onConfirm(entry.id || entry._id);
 
-      showToast(`Deleted ${entry.cup_count} cups entry`)
+      showToast(`Deleted ${entry.cup_count} cups entry`);
 
-      onClose()
+      onClose();
     } catch (err) {
-      console.log(err)
-      showToast("Delete failed ❌")
+      console.log(err);
+      showToast("Delete failed ❌");
     } finally {
-      setDeleting(false)
+      setDeleting(false);
     }
   }
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-box" onClick={(e) => e.stopPropagation()}>
-        <h2 className="modal-title">Delete Entry</h2>
+        <div className="modal-header">
+          <div>
+            <h2 className="modal-title">Delete Entry</h2>
 
-        <p className="modal-delete-msg">
-          Delete <strong>{entry.cup_count} cup{entry.cup_count !== 1 ? "s" : ""}</strong> Entry?
-        </p>
+            <p className="modal-subtitle">This action cannot be undone</p>
+          </div>
+        </div>
+
+        <div className="delete-warning-box">
+          <p className="modal-delete-msg">
+            Delete{" "}
+            <strong>
+              {entry.cup_count} cup
+              {entry.cup_count !== 1 ? "s" : ""}
+            </strong>{" "}
+            entry?
+          </p>
+        </div>
 
         <div className="modal-actions">
-          <button className="modal-btn-cancel" onClick={onClose} disabled={deleting}>
+          <button
+            className="modal-btn-cancel"
+            onClick={onClose}
+            disabled={deleting}
+          >
             Cancel
           </button>
 
@@ -159,16 +215,17 @@ function DeleteModal({ entry, onConfirm, onClose, showToast }) {
           >
             {deleting ? (
               <span className="btn-loader">
-                <span className="spinner"></span> Deleting...
+                <span className="spinner"></span>
+                Deleting...
               </span>
             ) : (
-              "Delete"
+              "Delete Entry"
             )}
           </button>
         </div>
       </div>
     </div>
-  )
+  );
 }
 export default function MonthlyView({
   allEntries = [],
@@ -177,113 +234,122 @@ export default function MonthlyView({
   editEntry,
   fetchMonth,
   pagination = {},
-  pageLimit = 10
+  pageLimit = 10,
 }) {
-  const now = new Date()
+  const now = new Date();
 
-  const [selectedYear, setSelectedYear] = useState(now.getFullYear())
-  const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1)
-  const [currentPage, setCurrentPage] = useState(1)
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const [editingEntry, setEditingEntry] = useState(null)
-  const [deletingEntry, setDeletingEntry] = useState(null)
-  const [toast, setToast] = useState(null)
+  const [editingEntry, setEditingEntry] = useState(null);
+  const [deletingEntry, setDeletingEntry] = useState(null);
+  const [toast, setToast] = useState(null);
 
   function showToast(message) {
-    setToast(message)
-    setTimeout(() => setToast(null), 2500)
+    setToast(message);
+    setTimeout(() => setToast(null), 2500);
   }
 
   useEffect(() => {
-    fetchMonth?.(selectedYear, selectedMonth, currentPage, pageLimit)
-  }, [fetchMonth, selectedYear, selectedMonth, currentPage, pageLimit])
+    fetchMonth?.(selectedYear, selectedMonth, currentPage, pageLimit);
+  }, [fetchMonth, selectedYear, selectedMonth, currentPage, pageLimit]);
 
-  const mk = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`
+  const mk = `${selectedYear}-${String(selectedMonth).padStart(2, "0")}`;
 
-  const filtered = allEntries.filter(e =>
-    (e.date || '').slice(0, 7) === mk
-  )
+  const filtered = allEntries.filter((e) => (e.date || "").slice(0, 7) === mk);
 
-  const totalPages = pagination.totalPages || 1
-  const totalCups = pagination.totalCups || 0
-  const totalAmount = pagination.totalAmount || 0
-  const totalEntries = pagination.totalEntries || 0
+  const totalPages = pagination.totalPages || 1;
+  const totalCups = pagination.totalCups || 0;
+  const totalAmount = pagination.totalAmount || 0;
+  const totalEntries = pagination.totalEntries || 0;
 
   async function handlePrint() {
     try {
       const res = await API.get("/entries/export/pdf", {
         params: { year: selectedYear, month: selectedMonth },
         responseType: "blob",
-      })
+      });
 
-      const url = window.URL.createObjectURL(new Blob([res.data]))
-      const link = document.createElement("a")
-      link.href = url
-      link.download = `tea-report-${selectedYear}-${selectedMonth}.pdf`
-      link.click()
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `tea-report-${selectedYear}-${selectedMonth}.pdf`;
+      link.click();
     } catch (err) {
-      console.log("PDF export error:", err.message)
+      console.log("PDF export error:", err.message);
     }
   }
 
   async function handleDelete(id) {
     try {
-      await deleteEntry(id)
+      await deleteEntry(id);
     } catch (err) {
-      alert("Delete not allowed")
+      alert("Delete not allowed");
     }
   }
 
   return (
     <div className="page-container">
       <div className="monthly-nav">
-        <div className='month-year'>
-          <Select
-            value={String(selectedMonth)}
-            onValueChange={(value) => {
-              setSelectedMonth(Number(value))
-              setCurrentPage(1)
-            }}
-          >
-            <SelectTrigger className="select-month">
-              <SelectValue placeholder="Select Month" />
-            </SelectTrigger>
+        <div className="monthly-nav-left">
+          <div className="monthly-nav-header">
+            <h2 className="monthly-nav-title">Monthly Summary</h2>
 
-            <SelectContent position="popper">
-              {ALL_MONTHS.map((m, i) => (
-                <SelectItem key={i} value={String(i + 1)}>
-                  {m}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <p className="monthly-nav-subtitle">
+              Filter entries and export reports
+            </p>
+          </div>
 
-          <Select
-            value={String(selectedYear)}
-            onValueChange={(value) => {
-              setSelectedYear(Number(value))
-              setCurrentPage(1)
-            }}
-          >
-            <SelectTrigger className="select-month">
-              <SelectValue placeholder="Select Year" />
-            </SelectTrigger>
+          <div className="month-year">
+            <Select
+              value={String(selectedMonth)}
+              onValueChange={(value) => {
+                setSelectedMonth(Number(value));
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="select-month">
+                <SelectValue placeholder="Select Month" />
+              </SelectTrigger>
 
-            <SelectContent position="popper">
-              {Array.from({ length: 10 }, (_, i) => {
-                const y = now.getFullYear() - 5 + i
-                return (
-                  <SelectItem key={y} value={String(y)}>
-                    {y}
+              <SelectContent position="popper">
+                {ALL_MONTHS.map((m, i) => (
+                  <SelectItem key={i} value={String(i + 1)}>
+                    {m}
                   </SelectItem>
-                )
-              })}
-            </SelectContent>
-          </Select>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={String(selectedYear)}
+              onValueChange={(value) => {
+                setSelectedYear(Number(value));
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="select-month">
+                <SelectValue placeholder="Select Year" />
+              </SelectTrigger>
+
+              <SelectContent position="popper">
+                {Array.from({ length: 10 }, (_, i) => {
+                  const y = now.getFullYear() - 5 + i;
+
+                  return (
+                    <SelectItem key={y} value={String(y)}>
+                      {y}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div className="actions">
-          <button className="btn" onClick={handlePrint}>
+          <button className="btn print-btn" onClick={handlePrint}>
             <HiPrinter />
             Print Report
           </button>
@@ -291,35 +357,57 @@ export default function MonthlyView({
       </div>
 
       {/* SUMMARY */}
-      <div className="monthly-summary-row">
-        <div className="stat-card">
-          <div className="monthly-stat-value">{totalCups}</div>
-          <div className="monthly-stat-label">Total Cups</div>
+      <div className="summary-section">
+        <div className="summary-header">
+          <div>
+            <h2 className="summary-title">Monthly Summary</h2>
+
+            <p className="summary-subtitle">
+              {ALL_MONTHS[selectedMonth - 1]} {selectedYear} overview and
+              billing statistics
+            </p>
+          </div>
         </div>
 
-        <div className="stat-card">
-          <div className="monthly-stat-value">{totalEntries}</div>
-          <div className="monthly-stat-label">Entries</div>
-        </div>
+        <div className="monthly-summary-grid-new1">
+          <div className="monthly-stat-card-new">
+            <div className="monthly-stat-value-new">{totalCups}</div>
 
-        <div className="stat-card">
-          <div className="monthly-stat-value">₹{currentPrice || 0}</div>
-          <div className="monthly-stat-label">Current Cup Price</div>
-        </div>
+            <div className="monthly-stat-label-new">Total Cups</div>
+          </div>
 
-        <div className="stat-card">
-          <div className="monthly-stat-value teal">₹{totalAmount}</div>
-          <div className="monthly-stat-label">Total Amount</div>
+          <div className="monthly-stat-card-new">
+            <div className="monthly-stat-value-new">{totalEntries}</div>
+
+            <div className="monthly-stat-label-new">Entries Added</div>
+          </div>
+
+          <div className="monthly-stat-card-new">
+            <div className="monthly-stat-value-new">₹{currentPrice || 0}</div>
+
+            <div className="monthly-stat-label-new">Current Cup Price</div>
+          </div>
+
+          <div className="monthly-stat-card-new teal">
+            <div className="monthly-stat-value-new teal">₹{totalAmount}</div>
+
+            <div className="monthly-stat-label-new">Total Amount</div>
+          </div>
         </div>
       </div>
 
       {/* TABLE */}
       <div className="card">
         <div className="entries-header">
-          <h1>
-            All Entries — {ALL_MONTHS[selectedMonth - 1]} {selectedYear}
-          </h1>
-          <span className="badge">{totalEntries} entries</span>
+          <div>
+            <h1 className="entries-main-title">All Entries</h1>
+
+            <p className="entries-subtitle">
+              {ALL_MONTHS[selectedMonth - 1]} {selectedYear}
+            </p>
+          </div>
+
+          <span className="badge">{totalEntries} Entries</span>
         </div>
 
         {filtered.length === 0 ? (
@@ -341,9 +429,9 @@ export default function MonthlyView({
 
               <tbody>
                 {filtered.map((e, i) => {
-                  const id = e._id || e.id
-                  const pricePerCup = e.price_per_cup || currentPrice || 0
-                  const total = (e.cup_count || 0) * pricePerCup
+                  const id = e._id || e.id;
+                  const pricePerCup = e.price_per_cup || currentPrice || 0;
+                  const total = (e.cup_count || 0) * pricePerCup;
 
                   return (
                     <tr key={id}>
@@ -353,7 +441,7 @@ export default function MonthlyView({
                       <td>₹{pricePerCup}</td>
                       <td className="entry-cups">{e.cup_count}</td>
                       <td>₹{total}</td>
-                      <td className='btns'>
+                      <td className="btns">
                         <button
                           className="btn-edit"
                           onClick={() =>
@@ -361,7 +449,7 @@ export default function MonthlyView({
                               id,
                               cup_count: e.cup_count,
                               date: e.date,
-                              time: e.time
+                              time: e.time,
                             })
                           }
                         >
@@ -375,7 +463,7 @@ export default function MonthlyView({
                               id,
                               cup_count: e.cup_count,
                               date: e.date,
-                              time: e.time
+                              time: e.time,
                             })
                           }
                         >
@@ -383,7 +471,7 @@ export default function MonthlyView({
                         </button>
                       </td>
                     </tr>
-                  )
+                  );
                 })}
               </tbody>
             </table>
@@ -392,7 +480,9 @@ export default function MonthlyView({
               <div className="pagination">
                 <button
                   className="pagination-btn"
-                  onClick={() => setCurrentPage((page) => Math.max(page - 1, 1))}
+                  onClick={() =>
+                    setCurrentPage((page) => Math.max(page - 1, 1))
+                  }
                   disabled={currentPage <= 1}
                 >
                   Previous
@@ -404,7 +494,9 @@ export default function MonthlyView({
 
                 <button
                   className="pagination-btn"
-                  onClick={() => setCurrentPage((page) => Math.min(page + 1, totalPages))}
+                  onClick={() =>
+                    setCurrentPage((page) => Math.min(page + 1, totalPages))
+                  }
                   disabled={currentPage >= totalPages}
                 >
                   Next
@@ -432,12 +524,7 @@ export default function MonthlyView({
           showToast={showToast}
         />
       )}
-      {toast && (
-        <div className="toast">
-          {toast}
-        </div>
-      )}
-
+      {toast && <div className="toast">{toast}</div>}
     </div>
-  )
+  );
 }
