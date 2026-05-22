@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/popover"
 import { CalendarIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { format } from "date-fns/format"
+import { format } from 'date-fns'
 import Footer from "../components/Footer"
 
 function formatDisplayDate(dateStr) {

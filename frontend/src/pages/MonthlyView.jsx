@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { format } from 'date-fns/format';
+import { format } from 'date-fns';
 
 
 function formatDisplayDate(dateStr) {
