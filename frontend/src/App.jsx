@@ -39,7 +39,7 @@ export default function App() {
   const hasLoadedDashboard = useRef(false)
   const hasLoadedSettings = useRef(false)
 
-  // ✅ DASHBOARD API
+  // DASHBOARD API
   async function loadDashboard() {
     setLoading(true)
     try {
@@ -69,7 +69,7 @@ export default function App() {
     }
   }
 
-  // ✅ MONTHLY API
+  //  MONTHLY API
   const loadMonthly = useCallback(async (year, month, page = 1, limit = MONTHLY_PAGE_LIMIT) => {
     setLoading(true)
     try {
@@ -95,7 +95,7 @@ export default function App() {
     }
   }, [])
 
-  // ✅ SETTINGS API
+  // SETTINGS API
   async function loadSettings() {
     try {
       const [priceRes, historyRes] = await Promise.all([
@@ -111,19 +111,17 @@ export default function App() {
     }
   }
 
-  // ✅ PAGE BASED API CALL
+  // PAGE BASED API CALL
   useEffect(() => {
-    if (page === "dashboard" && !hasLoadedDashboard.current) {
-      hasLoadedDashboard.current = true
+    if (page === "dashboard") {
       loadDashboard()
     }
 
-    if (page === "settings" && !hasLoadedSettings.current) {
-      hasLoadedSettings.current = true
+    if (page === "settings") {
       loadSettings()
     }
 
-    // ✅ Monthly page open → API call
+    // Monthly page open → API call
     if (page === "monthly") {
       const now = new Date()
       loadMonthly(now.getFullYear(), now.getMonth() + 1)
@@ -131,14 +129,14 @@ export default function App() {
 
   }, [page])
 
-  // ✅ REFRESH
+  //  REFRESH
   async function refreshEntries() {
     if (page === "dashboard") {
       await loadDashboard()
     }
   }
 
-  // ✅ ADD
+  //  ADD
   async function addEntry(cups, date) {
     try {
       await API.post("/entries/add", {
@@ -154,7 +152,7 @@ export default function App() {
     }
   }
 
-  // ✅ DELETE
+  //  DELETE
   async function deleteEntry(id) {
     try {
       await API.delete(`/entries/delete/${id}`)
@@ -165,7 +163,7 @@ export default function App() {
     }
   }
 
-  // ✅ UPDATE
+  // UPDATE
   async function editEntry(id, cups) {
     try {
       await API.put(`/entries/update/${id}`, {
@@ -179,7 +177,7 @@ export default function App() {
     }
   }
 
-  // ✅ PRICE UPDATE
+  // PRICE UPDATE
   async function updatePrice(newPrice) {
     try {
       await API.post("/price/set", { price: newPrice })
@@ -218,7 +216,7 @@ export default function App() {
           editEntry={editEntry}
           pagination={monthlyPagination}
           pageLimit={MONTHLY_PAGE_LIMIT}
-          fetchMonth={loadMonthly} // ✅ IMPORTANT
+          fetchMonth={loadMonthly} // 
         />
       )}
 
