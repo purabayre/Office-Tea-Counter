@@ -175,16 +175,18 @@ export default function MonthlyView({
   currentPrice,
   deleteEntry,
   editEntry,
-  fetchMonth
+  fetchMonth,
+  pagination = {},
+  pageLimit = 10
 }) {
   const now = new Date()
 
   const [selectedYear, setSelectedYear] = useState(now.getFullYear())
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1)
+  const [currentPage, setCurrentPage] = useState(1)
 
   const [editingEntry, setEditingEntry] = useState(null)
   const [deletingEntry, setDeletingEntry] = useState(null)
-  const [showAll, setShowAll] = useState(false)
   const [toast, setToast] = useState(null)
 
   function showToast(message) {
@@ -193,8 +195,8 @@ export default function MonthlyView({
   }
 
   useEffect(() => {
-    fetchMonth?.(selectedYear, selectedMonth)
-  }, [selectedYear, selectedMonth,])
+    fetchMonth?.(selectedYear, selectedMonth, currentPage, pageLimit)
+  }, [fetchMonth, selectedYear, selectedMonth, currentPage, pageLimit])
 
   const mk = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`
 
@@ -202,16 +204,10 @@ export default function MonthlyView({
     (e.date || '').slice(0, 7) === mk
   )
 
-  const displayedEntries = showAll ? filtered : filtered.slice(0, 10)
-
-  const totalCups = filtered.reduce((s, e) => s + (e.cup_count || 0), 0)
-
-  const totalAmount = filtered.reduce(
-    (s, e) => s + (e.cup_count || 0) * (e.price_per_cup || currentPrice || 0),
-    0
-  )
-
-  const totalEntries = filtered.length
+  const totalPages = pagination.totalPages || 1
+  const totalCups = pagination.totalCups || 0
+  const totalAmount = pagination.totalAmount || 0
+  const totalEntries = pagination.totalEntries || 0
 
   async function handlePrint() {
     try {
@@ -244,7 +240,10 @@ export default function MonthlyView({
         <div className='month-year'>
           <Select
             value={String(selectedMonth)}
-            onValueChange={(value) => setSelectedMonth(Number(value))}
+            onValueChange={(value) => {
+              setSelectedMonth(Number(value))
+              setCurrentPage(1)
+            }}
           >
             <SelectTrigger className="select-month">
               <SelectValue placeholder="Select Month" />
@@ -261,7 +260,10 @@ export default function MonthlyView({
 
           <Select
             value={String(selectedYear)}
-            onValueChange={(value) => setSelectedYear(Number(value))}
+            onValueChange={(value) => {
+              setSelectedYear(Number(value))
+              setCurrentPage(1)
+            }}
           >
             <SelectTrigger className="select-month">
               <SelectValue placeholder="Select Year" />
@@ -317,7 +319,7 @@ export default function MonthlyView({
           <h1>
             All Entries — {ALL_MONTHS[selectedMonth - 1]} {selectedYear}
           </h1>
-          <span className="badge">{filtered.length} entries</span>
+          <span className="badge">{totalEntries} entries</span>
         </div>
 
         {filtered.length === 0 ? (
@@ -338,14 +340,14 @@ export default function MonthlyView({
               </thead>
 
               <tbody>
-                {displayedEntries.map((e, i) => {
+                {filtered.map((e, i) => {
                   const id = e._id || e.id
                   const pricePerCup = e.price_per_cup || currentPrice || 0
                   const total = (e.cup_count || 0) * pricePerCup
 
                   return (
                     <tr key={id}>
-                      <td>{i + 1}</td>
+                      <td>{(currentPage - 1) * pageLimit + i + 1}</td>
                       <td className="date-time">{formatDisplayDate(e.date)}</td>
                       <td>{format(e.createdAt, "hh:mm a")}</td>
                       <td>₹{pricePerCup}</td>
@@ -386,14 +388,27 @@ export default function MonthlyView({
               </tbody>
             </table>
 
-            {filtered.length > 10 && (
-              <div className="view-all-container">
-                <span
-                  className="view-all-link"
-                  onClick={() => setShowAll(prev => !prev)}
+            {totalPages > 1 && (
+              <div className="pagination">
+                <button
+                  className="pagination-btn"
+                  onClick={() => setCurrentPage((page) => Math.max(page - 1, 1))}
+                  disabled={currentPage <= 1}
                 >
-                  {showAll ? "Show Less" : "View All Transaction History"}
+                  Previous
+                </button>
+
+                <span className="pagination-info">
+                  Page {currentPage} of {totalPages}
                 </span>
+
+                <button
+                  className="pagination-btn"
+                  onClick={() => setCurrentPage((page) => Math.min(page + 1, totalPages))}
+                  disabled={currentPage >= totalPages}
+                >
+                  Next
+                </button>
               </div>
             )}
           </>

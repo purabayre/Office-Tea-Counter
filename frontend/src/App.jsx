@@ -1,10 +1,12 @@
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef, useCallback } from "react"
 import Navbar from "./components/Navbar"
 import Dashboard from "./pages/Dashboard"
 import MonthlyView from "./pages/MonthlyView"
 import Settings from "./pages/Settings"
-import API from "./api"
+import API, { getMonthlyEntries } from "./api"
 import Footer from "./components/Footer"
+
+const MONTHLY_PAGE_LIMIT = 10
 
 function todayStr() {
   return new Date().toISOString().split("T")[0]
@@ -17,6 +19,14 @@ export default function App() {
   const [price, setPrice] = useState(0)
   const [priceHistory, setPriceHistory] = useState([])
   const [loading, setLoading] = useState(false)
+  const [monthlyPagination, setMonthlyPagination] = useState({
+    page: 1,
+    limit: MONTHLY_PAGE_LIMIT,
+    totalEntries: 0,
+    totalPages: 1,
+    totalCups: 0,
+    totalAmount: 0
+  })
 
   const [monthSummary, setMonthSummary] = useState({
     totalCups: 0,
@@ -60,20 +70,30 @@ export default function App() {
   }
 
   // ✅ MONTHLY API
-  async function loadMonthly(year, month) {
+  const loadMonthly = useCallback(async (year, month, page = 1, limit = MONTHLY_PAGE_LIMIT) => {
     setLoading(true)
     try {
-      const res = await API.get(
-        `/entries/month?year=${year}&month=${month}`
-      )
+      const res = await getMonthlyEntries(year, month, page, limit)
 
       setEntries(res.data.entries || [])
+      setMonthlyPagination({
+        page: res.data.page || page,
+        limit: res.data.limit || limit,
+        totalEntries: res.data.totalEntries || 0,
+        totalPages: res.data.totalPages || 1,
+        totalCups: res.data.totalCups || 0,
+        totalAmount: res.data.totalAmount || 0
+      })
+
+      if (typeof res.data.currentPrice === "number") {
+        setPrice(res.data.currentPrice)
+      }
     } catch (err) {
       console.log("monthly error:", err.message)
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   // ✅ SETTINGS API
   async function loadSettings() {
@@ -196,6 +216,8 @@ export default function App() {
           currentPrice={price}
           deleteEntry={deleteEntry}
           editEntry={editEntry}
+          pagination={monthlyPagination}
+          pageLimit={MONTHLY_PAGE_LIMIT}
           fetchMonth={loadMonthly} // ✅ IMPORTANT
         />
       )}

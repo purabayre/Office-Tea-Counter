@@ -19,4 +19,9 @@ export const savePriceHistory = (data) =>
 export const fetchPriceHistory = () =>
   API.get("/price/history");
 
+export const getMonthlyEntries = (year, month, page = 1, limit = 10) =>
+  API.get("/entries/month", {
+    params: { year, month, page, limit },
+  });
+
 export default API;
