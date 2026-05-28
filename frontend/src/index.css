@@ -1150,7 +1150,7 @@ body {
 }
 
 .footer {
-  position: fixed;
+  /* position: fixed; */
   bottom: 0;
   left: 0;
   width: 100%;
@@ -1926,7 +1926,7 @@ body {
   border: 1px solid var(--color-border-light);
   border-radius: 14px;
   padding: 18px;
-  transition: all 0.2s ease;
+  /* transition: all 0.2s ease; */
 }
 
 .monthly-stat-card-new:hover {
